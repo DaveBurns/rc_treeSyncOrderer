@@ -1,0 +1,337 @@
+--[[
+        Additional settings definition file - accessed by selecting 'Edit Advanced Settings' from drop-down in plugin manager (preset manager section).
+        
+        *** Reminder: reload plugin after editing this file - for changes to take effect.
+            
+        *** Important: when editing, take care to assure punctuation and syntax are not disturbed. In comments, it doesn't matter, but in the rest - every character is potentially meaningful,
+                       including spaces, commas, brackets, dots, underscores...
+                       
+        There are 2 kinds of comments:
+        1. single line
+        2. multi-line (like this one).
+        
+        lines beginning with '--' (without the apostrophes) are single line comments.
+        lines beginning with '- - [ [' (without the spaces) begin multi-line comments, which end with '- - ] ]' (without the spaces).
+
+        
+        Speaking of quotes and apostrophe's: they're equivalent - they both delimit text strings (but you can nest double-quotes within apostrophe-delimited strings and vice versa,
+        without escaping, examples:
+        local mystring = 'This is a "string"' -- ok
+        local mystring = "This is a 'string'" -- ok
+        local mystring = 'This is a 'string'' -- not ok
+        local mystring = "This is a "string"" -- not ok
+        local mystring = 'This is a \'string\'' -- ok (apostrophes have been "escaped" via backslash character)
+        local mystring = "This is a \"string\"" -- ok (double-quotes are escaped)
+
+        
+        Definitions:
+        
+        * Comment-out: to prepend '--' to a non-comment line making it a comment, or to wrap one or more non-comment lines with '- - [ [' & '- - ] ]'. This turns non-comment lines into comments, rendering them null & void for all practical purposes.
+        * Un-comment: to remove the '--' at the front of a comment line thus enabling it to take effect (or removing '- - [ [' & '- - ] ]' wrappage).
+        
+        
+        This configuration file is interpreted in the context of the Elare Plugin Framework - most Lr namespaces are available, and all standard Elare interface objects are available, including:
+        
+        String/text formatting:
+        * str:fmtx - a derivative of Lightroom's LOC function - same syntax for specifying placeholders in the format string..., e.g.
+            str:fmtx( "Hello ^1^2", "World", "!!!" ) -- will create the string: "Hello World!!!".
+          string.format 'C' string formatting function, e.g.
+            string.format( "%u times", count ) -- outputs "5 times", if count is 5.
+        Debugging (ignored if advanced debugging is not enabled) :
+        * Debug.lognpp - log any number of parameters in a "pretty" format, e.g.
+            Debug.lognpp( "before", devSets, "after", photo:getDevelopSettings() ) -- log before and after develop settings.
+        * Debug.pause and Debug.pauseIf - shows values of variables, if any, and presents options to keep going or stop, e.g.
+            Debug.pause( myvar ) -- stop execution temporarily, and show the value of myvar variable.
+            Debug.pause() -- show nothing, but confirm execution has reached this point.
+        Logging to plugin log file:
+        * app:log and app:logv log file methods (LOC compatible formatting), e.g.
+            app:log( "Here it is: ^1", it ) -- log it
+            app:logv( "hmm..." ) -- log hmm... - included in log file only if verbose logging is enabled.
+            
+        and MANY more, but the luadoc is out of date - see source code itself, or examples here-in, for reference.
+          
+        Reference documentation can be obtained by reading the API doc, downloadable as part of the Lightroom SDK, from here:
+        
+        http://www.adobe.com/devnet/photoshoplightroom.html
+        
+        Get lua language documentation from www.lua.org
+--]]
+
+-- declare return table
+-- (don't change this)
+local _t = {}
+
+
+--[[
+        These items are displayed when 'View/Edit Additional Settings' button is clicked in plugin manager. May also be exposed elsewhere..
+        
+        Note: you can add items for configuration which will then be available to your custom functions within by calling app:getPref( id ).
+        
+        Strings: (text)
+            * Default string view type is edit-field, but also supports popup and combo-box - specify default as top-level member.
+            * If popup, items (with title and value) must be supplied as view options, and one can be tagged as the default.
+            * If combo-box, items (strings) must be supplied as view options, and one can be tagged as the default. Set immediate to true (in view options) or entered value will not take.
+            
+        Numbers: (integer or decimal..)
+            * Default number view type is edit-field, but popup can also be used (not combo-box).
+            
+        Boolean: (2-state: true/false; tri-state: true/false/nil)
+            * Default boolean view type is checkbox, but if default is nil, then radio buttons will be used (assumption of tri-state boolean: yes, no, & let plugin decide).
+            
+        Proxy: (values are defined in this file, or really could be defined anywhere, as long as accessible in this file)
+            * View-type defaults to popup, and if specified explictly, must be popup.
+            * Uses initializer list for view item initialization, instead of popup items (room for improvement there).
+            
+        Array: (2 kinds: 1 of N selection (more like a preset); whole (like a true array).
+            * view-type defaults to popup and is only kind supported - multi-list not ready for prime time.. 
+            
+        Note: values defined by these items, are avaialable everywhere via:
+            value = systemSettings:getValue( name ) -- specifically, or
+            value = app:getPref( name ) -- more generally, just be aware: this general form will take preference of same name first from UI (if defined), second from "advanced settings" file in plugin's 'Preferences' folder corresponding to preset (if defined), and thirdly from here (if defined). 
+            -- in both cases, value will be as defined for the currently selected plugin manager preset.
+--]]
+
+
+
+
+
+--[=[ stuff below is for sample/example to draw from:
+
+local function f1()
+    --Debug.pause( "f1" )
+    return "f1"
+end
+local function f2()
+    --Debug.pause( "f1" )
+    return "f2"
+end
+local t1=Object:new{
+    v = "t1",
+    toString=function( self ) return self.v end,
+}
+local t2=Object:new{
+    v = "t2",
+    toString=function( self ) return self.v end
+}
+
+
+_t[#_t + 1] = { viewType='tab', viewOptions={ title="Elemental", identifier='ubiquitous', spacing=1 } }
+
+_t[#_t + 1] = { viewType='separator', title="Strings" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egStr1', friendly="Example String One", dataType='string', default='example string one',
+    viewOptions={
+        tooltip = "string",
+    } }
+
+_t[#_t + 1] = { id='egStr2', friendly="Example String Two", dataType='string', viewType='popup', default='example string two', -- note: top-level default is ignored in favor of tagged item.
+    viewOptions={
+        tooltip = "string",
+        items = {
+            { title="Item One", value="value one" },
+            { title="Item Two", value="value two", default=true },
+        },
+    } }
+
+_t[#_t + 1] = { id='egStr3', friendly="Example String Three", dataType='string', viewType='combo_box', default='example string three', -- top-level default respected
+    viewOptions={
+        tooltip = "string",
+        immediate=true,
+        items = {
+            "Value One",
+            "Value Two",
+        },
+    } }
+    
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+_t[#_t + 1] = { viewType='separator', title="Numbers" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egNum1', friendly="Example Number One", dataType='number', default=1,
+    viewOptions={
+        precision = 0, -- integer
+        min = 1,
+        max = 10,
+        tooltip = "number",
+    } }
+    
+_t[#_t + 1] = { id='egNum2', friendly="Example Number Two", dataType='number', viewType='popup',
+    -- @4/Dec/2013 2:10, view option items required for numberic popup -  future improvement to support init list.
+    viewOptions={
+        items = {
+            { title="1", value=1 },
+            { title="2", value=2, default=2 },
+            { title="3", value=3 },
+        },
+        tooltip = "number",
+    } }
+    
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+_t[#_t + 1] = { viewType='separator', title="Booleans" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egBool1', friendly="Example Boolean One", dataType='boolean', default=false, -- checkbox since default is assigned (boolean) - explicit view-type is not supported for boolean.
+    viewOptions={
+        tooltip="boolean",
+    } }
+
+_t[#_t + 1] = { id='egBool2', friendly="Example Boolean Two", dataType='boolean', default=nil, -- yes/no+"let-plugin-decide" radio-buttons, if default is nil.
+    viewOptions={
+        tooltip="boolean",
+    } }
+
+_t[#_t + 1] = { viewType='tab', viewOptions={ title="Esoteric", identifier='esoteric', spacing=1 } }
+    
+_t[#_t + 1] = { viewType='separator', title="Proxies" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egProx1', friendly="Example Proxy One", dataType='proxy',
+    init = {
+        { title="Proxied Table One", value=t1 },
+        { title="Proxied Table Two", value=t2, default=true },
+    },
+    viewOptions={
+        tooltip="proxy tables",
+        -- items created from init array.
+    } }
+    
+_t[#_t + 1] = { id='egProx2', friendly="Example Proxy Two", dataType='proxy',
+    init = {
+        { title="Proxied Function One", value=f1 },
+        { title="Proxied Function Two", value=f2, default=true },
+    },
+    viewOptions={
+        tooltip="proxy functions",
+        -- items created from init array.
+    } }
+    
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+_t[#_t + 1] = { viewType='separator', title="Arrays" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egArr1', friendly="Example Array One", dataType='array', whole=true,
+    viewOptions={
+        tooltip = "array",
+    },
+    elem = {
+        { id='egArr1Elem1', friendly="Array One Boolean One", dataType='boolean', default=true },
+        { id='egArr1Elem2', friendly="Array One String One", dataType='string', default="a1s1" },
+        { id='egArr1Elem3', friendly="Array One Number One", dataType='number', default=2,
+            viewOptions = {
+                precision=1,
+                min=0,
+                max=5,
+            },
+        },
+    },
+    init = {
+        { title = "Init One", values={ egArr1Elem1=false, egArr1Elem2="init'd by 1", egArr1Elem3=1 } },
+        { title = "Init Two", values={ egArr1Elem1=false, egArr1Elem2="init'd by 2", egArr1Elem3=2 }, default=true },
+    },
+}
+
+_t[#_t + 1] = { id='egArr2', friendly="Example Array Two", dataType='array',
+    viewOptions={
+        tooltip = "array",
+    },
+    elem = {
+        { id='egArr2Elem1', friendly="Array Two Boolean One", dataType='boolean', default=true },
+        { id='egArr2Elem2', friendly="Array Two String One", dataType='string', default="a1s1" },
+        { id='egArr2Elem3', friendly="Array Two Number One", dataType='number', default=2,
+            viewOptions = {
+                precision=1,
+                min=0,
+                max=5,
+            },
+        },
+    },
+    init = {
+        { title = "Init One", values={ egArr2Elem1=false, egArr2Elem2="init'd by 1", egArr2Elem3=1 } },
+        { title = "Init Two", values={ egArr2Elem1=false, egArr2Elem2="init'd by 2", egArr2Elem3=2 }, default=true },
+    },
+}
+
+
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+_t[#_t + 1] = { viewType='separator', title="Function Bodies" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+_t[#_t + 1] = { id='egFunc1', friendly="Function taking one argument named 'params' containing:\n * photo (LrPhoto) target photo...", dataType='function', default=[[
+-- this is the body of a function which takes one argument named "params" which contains all the named parameters...
+
+params = params or {}
+local b = {}
+for k, v in tab:sortedPairs( params ) do
+    b[#b + 1] = str:fmtx( "^1: ^2", k, str:to( v ) )
+end
+return "params: "..table.concat( b, "\n" )]],
+    viewOptions={
+        height_in_lines=10,
+    }
+}
+
+
+
+_t[#_t + 1] = { viewType='tab', viewOptions={ title="Eclectic", identifier='eclectic', spacing=1 } }
+    
+_t[#_t + 1] = { viewType='separator', title="Develop Settings" }
+_t[#_t + 1] = { viewType='spacer', viewOptions={ height=10 } }
+
+-- Note: @5/Dec/2013 6:24, dev-settings editor has never been used in a real plugin.
+_t[#_t + 1] = { id='egDevEdit1', friendly="Edit Develop Settings", dataType='array', viewType="devSettingsEditor",
+    viewOptions={ -- ? tooltip is getting lost, and also data-width is too small (something's missing).
+        tooltip="dev settings editor",
+        -- items created from init array.
+    } }
+    
+-- Note: @5/Dec/2013 6:24, dev-settings chooser has never been used in a real plugin.
+_t[#_t + 1] = { id='egDevChoose1', friendly="Choose Develop Settings", dataType='array', viewType="devSettingsChooser",
+    viewOptions={ -- ?
+        tooltip="dev settings chooser",
+        -- items created from init array.
+    } }
+    
+_t[#_t + 1] = { id='egDevPreChoose1', friendly="Choose Develop Presets", dataType='array', viewType="devPresetChooser", --  I think this only works with (UNBOUNDED?) array type.
+    viewOptions={ -- ?
+        tooltip="dev preset chooser",
+        -- items created from init array.
+    } }
+    
+_t[#_t + 1] = { id='egMetaPreChoose1', friendly="Choose Metadata Presets", dataType='array', viewType="metaPresetChooser", --  I think this only works with (UNBOUNDED?) array type.
+    viewOptions={ -- ?
+        tooltip="meta preset chooser",
+        -- items created from init array.
+    } }
+
+if gbl:getValue( 'Keywords' ) then -- keyword chooser requires class object not initialized as part of the framework by default.
+    _t[#_t + 1] = { id='egKwChoose1', friendly="Choose Keywords", dataType='array', viewType="keywordChooser", checkExistence=true, --  I think this only works with (UNBOUNDED?) array type - might be useful to have single keyword chooser(?)
+        viewOptions={ -- ?
+            tooltip="keyword chooser",
+            -- items created from init array.
+        } }
+end
+
+_t[#_t + 1] = { id='egFldrBrowse1', friendly="Browsable Folder", dataType='string', viewType="browsableFolder",
+    viewOptions={ -- ?
+        tooltip="browsable folder",
+        -- items created from init array.
+    } }
+
+_t[#_t + 1] = { id='egFileBrowse1', friendly="Browsable File", dataType='string', viewType="browsableFile",
+    viewOptions={ -- ?
+        tooltip="browsable file",
+        -- items created from init array.
+    } }
+
+_t[#_t + 1] = { id='egDngOptsChoose1', friendly="DNG Options Chooser", dataType='string', viewType="dngOptionsChooser",
+    viewOptions={ -- ?
+        tooltip="dng options chooser",
+        -- items created from init array.
+    } }
+--]=]
+
+
+
+-- return config table
+return _t
